@@ -3,6 +3,8 @@ import random
 import subprocess
 import platform
 import shutil
+from tkinter import filedialog
+from PIL import Image, ImageTk
 
 bg_color = "#000000"
 text_color = "#00FF00"
@@ -135,7 +137,9 @@ class WidgetPicker:
             "Entry": self.add_entry,
             "Super Tic Tac Toe": self.add_game,
             "Vault Terminal Emulator": self.add_terminal,
-            "Mini Calculator": self.add_calculator
+            "Mini Calculator": self.add_calculator,
+            "Set Wallpaper": self.set_wallpaper
+
 }
 
 
@@ -180,7 +184,38 @@ class WidgetPicker:
         self.clear_preview()
         game = SuperTicTacToe(self.preview)
         game.pack(expand=True, fill="both", padx=10, pady=10)
-        
+
+
+
+    def set_wallpaper(self):
+        file_path = filedialog.askopenfilename(filetypes=[("Image Files", "*.png *.jpg *.jpeg *.bmp")])
+        if not file_path:
+            return
+
+        try:
+            img = Image.open(file_path)
+
+            # Ensure the preview dimensions are updated
+            self.preview.update_idletasks()
+            width, height = self.preview.winfo_width(), self.preview.winfo_height()
+
+            img = img.resize((width, height), Image.Resampling.LANCZOS)
+            self.wallpaper_img = ImageTk.PhotoImage(img)
+
+            # Create or update the wallpaper canvas
+            if not hasattr(self, "wallpaper_canvas"):
+                self.wallpaper_canvas = tk.Canvas(self.preview, highlightthickness=0, bd=0)
+                self.wallpaper_canvas.place(x=0, y=0, relwidth=1, relheight=1)
+                self.wallpaper_id = self.wallpaper_canvas.create_image(0, 0, anchor="nw", image=self.wallpaper_img)
+            else:
+                self.wallpaper_canvas.itemconfig(self.wallpaper_id, image=self.wallpaper_img)
+
+            # Ensure other widgets are displayed above the wallpaper
+            for widget in self.preview.winfo_children():
+                widget.lift()
+
+        except Exception as e:
+            print(f"Failed to load wallpaper: {e}")
 
     def add_terminal(self):
         self.clear_preview()
