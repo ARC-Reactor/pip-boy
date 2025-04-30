@@ -188,11 +188,18 @@ class WidgetPicker:
 
 
     def set_wallpaper(self):
-        file_path = filedialog.askopenfilename(filetypes=[("Image Files", "*.png *.jpg *.jpeg *.bmp")])
-        if not file_path:
+        import os
+
+        # Automatically use 'vaulttec.jpg' from the same directory as the script
+        file_path = os.path.join(os.path.dirname(__file__), "vaulttec.jpg")
+        if not os.path.exists(file_path):
+            print("Wallpaper file 'vaulttec.jpg' not found.")
             return
 
         try:
+            # Clear the preview area
+            self.clear_preview()
+
             img = Image.open(file_path)
 
             # Ensure the preview dimensions are updated
@@ -203,16 +210,9 @@ class WidgetPicker:
             self.wallpaper_img = ImageTk.PhotoImage(img)
 
             # Create or update the wallpaper canvas
-            if not hasattr(self, "wallpaper_canvas"):
-                self.wallpaper_canvas = tk.Canvas(self.preview, highlightthickness=0, bd=0)
-                self.wallpaper_canvas.place(x=0, y=0, relwidth=1, relheight=1)
-                self.wallpaper_id = self.wallpaper_canvas.create_image(0, 0, anchor="nw", image=self.wallpaper_img)
-            else:
-                self.wallpaper_canvas.itemconfig(self.wallpaper_id, image=self.wallpaper_img)
-
-            # Ensure other widgets are displayed above the wallpaper
-            for widget in self.preview.winfo_children():
-                widget.lift()
+            self.wallpaper_canvas = tk.Canvas(self.preview, highlightthickness=0, bd=0)
+            self.wallpaper_canvas.place(x=0, y=0, relwidth=1, relheight=1)
+            self.wallpaper_canvas.create_image(0, 0, anchor="nw", image=self.wallpaper_img)
 
         except Exception as e:
             print(f"Failed to load wallpaper: {e}")
